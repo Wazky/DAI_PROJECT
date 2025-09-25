@@ -17,18 +17,35 @@
  */
 package es.uvigo.esei.dai.hybridserver.http;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
 
+
 public class HTTPRequest {
+
+  private HTTPRequestMethod method;
+  private String ResourceChain;
+  private String httpVersion;
+
+
   public HTTPRequest(Reader reader) throws IOException, HTTPParseException {
     // TODO Completar. Cualquier error en el procesado debe lanzar una HTTPParseException
+    
+    // Wrap it into a bufferedReader
+    BufferedReader br = (reader instanceof BufferedReader) ? (BufferedReader) reader : new BufferedReader(reader);
+    
+    parseStartLine(br.readLine());
+    
+    //Web resource for http request structure: https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Messages
+
+
   }
 
   public HTTPRequestMethod getMethod() {
     // TODO Completar
-    return null;
+    return this.method;
   }
 
   public String getResourceChain() {
@@ -86,4 +103,40 @@ public class HTTPRequest {
 
     return sb.toString();
   }
+
+  // Additional functions
+
+  /**
+   * 
+   * @param line the starting line of an HTTP request
+   */
+  private void parseStartLine(String line) throws HTTPParseException{
+    String[] parts = line.split(" ");
+
+    // Start line should have 3 parts: Method + /ResourceChain + HTTP/Version
+    if (parts.length != 3) {
+      throw new HTTPParseException("ERROR: error while parsing start line from http request, 3 fields expected");
+      // Upgrade if startline has content check if it fits any of the start line parts for more accurate error msg
+    }
+    parseMethod(parts[0]);
+    //parseResourceChain();
+    //parseHttpVersion();
+
+  }
+
+  
+  private void parseMethod(String methodString) throws HTTPParseException{
+    try {
+      this.method = HTTPRequestMethod.valueOf(methodString);
+
+    } catch (IllegalArgumentException e) {
+      throw new HTTPParseException("ERROR: Method from http request do not match any existing http methods");       
+    }
+    
+  }
+
+  private void parseResourceChain(String resource) {
+
+  }
+
 }
