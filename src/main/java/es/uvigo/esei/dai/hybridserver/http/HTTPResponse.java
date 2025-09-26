@@ -24,17 +24,25 @@ import java.util.List;
 import java.util.Map;
 
 public class HTTPResponse {
+
+  private HTTPResponseStatus status;
+  private String version;
+  private String content;
+  private Map<String, String> parameters;
+
   public HTTPResponse() {
     // TODO Completar
   }
 
   public HTTPResponseStatus getStatus() {
     // TODO Completar
-    return null;
+    return this.status;
   }
 
   public void setStatus(HTTPResponseStatus status) {
     // TODO Completar
+    validateHTTPResponseStatus(status);
+    this.status = status;
   }
 
   public String getVersion() {
@@ -98,4 +106,17 @@ public class HTTPResponse {
       throw new RuntimeException("Unexpected I/O exception", e);
     }
   }
+
+// ADITIONAL FUNCTIONS
+
+  private void validateHTTPResponseStatus(HTTPResponseStatus status) {
+    // Check status is not null
+    if (status == null) {
+      throw new IllegalArgumentException("HTTP response status must not be null");
+    }
+
+    // Check status is valid
+    
+  }
+
 }

@@ -20,8 +20,11 @@ package es.uvigo.esei.dai.hybridserver.http;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.LinkedHashMap;
+
 
 public class HTTPRequest {
 
@@ -29,7 +32,7 @@ public class HTTPRequest {
   private String resourceChain;
   private String[] resourcePath;
   private String resourceName;
-  private Map<String, String> resourceParameters;
+  private Map<String, String> resourceParameters = new LinkedHashMap<>();
   private String httpVersion;
   private Map<String, String> headerParameters = new LinkedHashMap<>();
   private int contentLength = 0;
@@ -50,7 +53,23 @@ public class HTTPRequest {
       parseHeaderLine(line);
     }
     
-    // If content length > 0 read content (not implemented yet)
+    // Check if there is content
+    if (this.headerParameters.containsKey("Content-Length")) {
+      try {
+        this.contentLength = Integer.parseInt(this.headerParameters.get("Content-Length"));
+      
+      } catch (NumberFormatException e) {
+        throw new HTTPParseException("ERROR: invalid Content-Length value found in http request header");
+      }
+
+      if (this.contentLength < 0) {
+        throw new HTTPParseException("ERROR: negative Content-Length value found in http request header");
+      }
+
+      // Parse content
+      parseContent(br);
+
+    }
 
   }
 
@@ -163,23 +182,34 @@ public class HTTPRequest {
       throw new HTTPParseException("ERROR: empty key or value found in header line from http request");
     }
 
-    if (key.equals("Content-Length")) {
-      try {
-        int cl = Integer.parseInt(value);
-        
-        if (cl < 0) {
-          throw new HTTPParseException("ERROR: negative content length found in header line from http request");
-        }
-        
-        this.contentLength = cl;
-      
-      } catch (NumberFormatException e) {
-        throw new HTTPParseException("ERROR: invalid content length found in header line from http request");
-      }
-    }
-
     // Add header parameter to map
     this.headerParameters.put(key, value);
+  }
+
+  private void parseContent(BufferedReader br) throws IOException, HTTPParseException {
+    char[] contentChars = new char[this.contentLength];
+
+    int readChars = br.read(contentChars, 0, this.contentLength);
+    if (readChars != this.contentLength) {
+      throw new HTTPParseException("ERROR: invalid content length found in http request");
+    }
+
+
+
+    // Check if content type is application/x-www-form-urlencoded
+    if (this.headerParameters.containsKey("Content-Type") && this.headerParameters.get("Content-Type").equals("application/x-www-form-urlencoded")) {
+      // Decode content
+      this.content = URLDecoder.decode(new String(contentChars), StandardCharsets.UTF_8);
+      // Add content parameters to resource parameters map
+      this.resourceParameters = validateResourceParameters(this.content);
+
+    } else {
+      // Just set content
+      this.content = new String(contentChars);
+      // Add content parameters to resource parameters map
+      this.resourceParameters = validateResourceParameters(this.content);
+    }
+
   }
 
   /**
@@ -229,7 +259,6 @@ public class HTTPRequest {
 
       // Validate and parse parameters
       this.resourceParameters = validateResourceParameters(rchainParts[1]);
-
     }
     
     // Validate resource path and parse it into array and name
@@ -408,6 +437,7 @@ public class HTTPRequest {
 
     return false;
   }
+
 
   /**
    * Check if a string is null or empty

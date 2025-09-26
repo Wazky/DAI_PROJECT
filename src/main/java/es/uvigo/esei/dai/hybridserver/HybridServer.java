@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 
 import es.uvigo.esei.dai.hybridserver.http.HTTPParseException;
 import es.uvigo.esei.dai.hybridserver.http.HTTPRequest;
+import es.uvigo.esei.dai.hybridserver.http.HTTPRequestMethod;
 
 
 
@@ -85,6 +86,7 @@ public class HybridServer implements AutoCloseable {
               try {
                 HTTPRequest request = new HTTPRequest(reader);
                 
+
                 writer.write("GET / HTTP/1.1 \r\n");
                 writer.write("Content type: text-plain \r\n");
                 writer.write("Content-Length: 11\r\n");
