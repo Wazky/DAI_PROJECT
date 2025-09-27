@@ -22,37 +22,31 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 
-// Import wazky
-  // Inputs
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-// Outputs
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
-
-import es.uvigo.esei.dai.hybridserver.http.HTTPParseException;
-import es.uvigo.esei.dai.hybridserver.http.HTTPRequest;
-import es.uvigo.esei.dai.hybridserver.http.HTTPRequestMethod;
-
-
-
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import es.uvigo.esei.dai.hybridserver.http.ClientThread;
 
 public class HybridServer implements AutoCloseable {
   private static final int SERVICE_PORT = 8888;
   private Thread serverThread;
   private boolean stop;
+  
+  private int tamThreadPool;
+  private Map<String, String> pages;
 
   public HybridServer() {
     // TODO Inicializar con los parámetros por defecto
+    this.tamThreadPool = 10;
+    this.pages = new HashMap<>();
   }
 
   public HybridServer(Map<String, String> pages) {
     // TODO Inicializar con la base de datos en memoria conteniendo "pages"
+    this.tamThreadPool = 10;
+    this.pages = pages;
+
   }
 
   public HybridServer(Properties properties) {
@@ -74,31 +68,11 @@ public class HybridServer implements AutoCloseable {
                 break;
               // TODO Responder al cliente
               
-              // Obtain the i/o stream from the conection
-              InputStream is = socket.getInputStream();
-              OutputStream os = socket.getOutputStream();
+              // Create a thread pool to manage clients
+              ExecutorService executor = Executors.newFixedThreadPool(tamThreadPool);
 
-              // Wrap with inputStreamReader to translate bytes to chars, then wrap it with bufferedReader for efficiency
-              BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8));
-
-              BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, StandardCharsets.UTF_8));
-
-              try {
-                HTTPRequest request = new HTTPRequest(reader);
-                
-
-                writer.write("GET / HTTP/1.1 \r\n");
-                writer.write("Content type: text-plain \r\n");
-                writer.write("Content-Length: 11\r\n");
-                writer.write("\r\n");
-                writer.write("Hello world\r\n");
-
-
-              } catch (HTTPParseException e) {
-                //Handle HTTParseException
-              } catch (IOException e) {
-                //Handle IOException
-              }
+              executor.execute(new ClientThread(socket));
+              
               
             }
           }
@@ -131,4 +105,5 @@ public class HybridServer implements AutoCloseable {
 
     this.serverThread = null;
   }
+
 }

@@ -22,78 +22,130 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class HTTPResponse {
 
   private HTTPResponseStatus status;
   private String version;
   private String content;
-  private Map<String, String> parameters;
+  private Map<String, String> parameters = new java.util.HashMap<>();
+
+  private String CRLF = "\r\n";
 
   public HTTPResponse() {
     // TODO Completar
   }
 
   public HTTPResponseStatus getStatus() {
-    // TODO Completar
     return this.status;
   }
 
   public void setStatus(HTTPResponseStatus status) {
-    // TODO Completar
+    // Check it
     validateHTTPResponseStatus(status);
     this.status = status;
   }
 
   public String getVersion() {
-    // TODO Completar
-    return null;
+    // Check it
+    return this.version;
   }
 
   public void setVersion(String version) {
-    // TODO Completar
+    // Check it
+    try {
+      this.version = validateHTTPVersion(version);
+    } catch (IllegalArgumentException e) {
+      System.err.println(e.getMessage());
+      this.version = null;
+    }
   }
 
   public String getContent() {
-    // TODO Completar
-    return null;
+    // Check it
+    return this.content;
   }
 
   public void setContent(String content) {
-    // TODO Completar
+    // Check it
+    if (content != null) {
+      this.putParameter("Content-Length", String.valueOf(content.length()));
+    }
+
+    this.content = content;
   }
 
   public Map<String, String> getParameters() {
-    // TODO Completar
-    return null;
+    // Check it
+    return this.parameters;
   }
 
   public String putParameter(String name, String value) {
-    // TODO Completar
-    return null;
+    // Check it
+    try {
+      validateParameter(name, value);      
+    } catch (IllegalArgumentException e) {
+    
+      System.err.println(e.getMessage());
+      return null;
+    }
+
+    this.parameters.put(name, value);
+    return parseParameter(name);
   }
 
   public boolean containsParameter(String name) {
-    // TODO Completar
-    return false;
+    // Check it
+    return this.parameters.containsKey(name);
   }
 
   public String removeParameter(String name) {
-    // TODO Completar
+    // Check it
+    if (containsParameter(name)) {
+      return new String(name + ": " + this.parameters.remove(name));
+    }
     return null;
   }
 
   public void clearParameters() {
-    // TODO Completar
+    // Check it
+    this.parameters.clear();
   }
 
   public List<String> listParameters() {
-    // TODO Completar
-    return null;
+    // Check it
+    if (this.parameters.size() == 0) {
+      return new ArrayList<String>();
+    }
+    List<String> params = new ArrayList<String>();
+    for (String key : this.parameters.keySet()) {
+      params.add(parseParameter(key));
+    }
+    return params;
   }
 
   public void print(Writer writer) throws IOException {
-    // TODO Completar
+    // Check if http response base is valid (status and version)
+
+
+    // Print status line
+    writer.write(this.version + " " + parseHTTPResponseStatus() + CRLF);
+
+    // Print parameters
+    for (String param : listParameters()) {
+      writer.write(param + CRLF);
+    }
+
+    // Print a blank line to indicate the end of the header section
+    writer.write(CRLF);
+
+    // Print content if available
+    if (this.parameters.containsKey("Content-Length") && this.content != null) {
+      writer.write(this.content);
+      // ADD case has encoded content
+    }
+
   }
 
   @Override
@@ -109,14 +161,73 @@ public class HTTPResponse {
 
 // ADITIONAL FUNCTIONS
 
+  /**
+   * Parse HTTP Response status
+   * @return Parsed HTTP Response status
+   */
+  private String parseHTTPResponseStatus() {
+    return this.status.getCode() + " " + this.status.getStatus();
+  }
+
+  /**
+   * Parse HTTP Header parameter
+   * @param name Parameter name
+   * @return Parsed HTTP Header parameter
+   */
+  private String parseParameter(String name) {
+    String headerParameter = name + ": " + this.parameters.get(name);
+    return headerParameter;
+  }
+
+  /**
+   * Validate HTTP Response status
+   * @param status
+   */
   private void validateHTTPResponseStatus(HTTPResponseStatus status) {
     // Check status is not null
     if (status == null) {
       throw new IllegalArgumentException("HTTP response status must not be null");
     }
+  }
 
-    // Check status is valid
-    
+  /**
+   * Validate HTTP version
+   * @param version HTTP version to validate
+   * @return Validated HTTP version (Only "HTTP/1.1" supported)
+   * @throws IllegalArgumentException if version is null or invalid
+   */
+  private String validateHTTPVersion(String version) throws IllegalArgumentException {
+    // Check version is not null
+    if (version == null) {
+      throw new IllegalArgumentException("HTTP version must not be null");
+    }
+
+    // Check version is invalid
+    if (!version.equals(HTTPHeaders.HTTP_1_1.getHeader())) {
+      throw new IllegalArgumentException("Invalid HTTP version: " + version);
+    }
+
+    // Return valid version
+    return HTTPHeaders.HTTP_1_1.getHeader();
+  }
+
+  /**
+   * Validate parameter name and value
+   * @param name Parameter name
+   * @param value Parameter value
+   * @throws IllegalArgumentException if name or value are null or empty
+   */
+  private void validateParameter(String name, String value) throws IllegalArgumentException {
+    // Check name is not null or empty
+    if (name == null || name.isEmpty()) {
+      throw new IllegalArgumentException("Parameter name must not be null or empty");
+    }
+
+    // Check value is not null or empty
+    if (value == null || value.isEmpty()) {
+      throw new IllegalArgumentException("Parameter value must not be null or empty");
+    }
+
   }
 
 }
