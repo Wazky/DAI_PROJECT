@@ -10,13 +10,21 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
+import java.util.Map;
+import es.uvigo.esei.dai.hybridserver.http.HTTPRequestMethod;
+import es.uvigo.esei.dai.hybridserver.handler.RequestHandler;
+import es.uvigo.esei.dai.hybridserver.handler.BaseRequestHandler;
+import es.uvigo.esei.dai.hybridserver.handler.GETRequestHandler;
+import es.uvigo.esei.dai.hybridserver.handler.POSTRequestHandler;
 
 public class ClientThread implements Runnable{
 
     private Socket socket;
+    private Map<String, String> pages;
 
-    public ClientThread(Socket socket) {
+    public ClientThread(Socket socket, Map<String, String> pages) {
         this.socket = socket;
+        this.pages = pages;
     }
 
     @Override
@@ -32,19 +40,17 @@ public class ClientThread implements Runnable{
             try {
             // Parse the HTTP request
             HTTPRequest request = new HTTPRequest(reader);
-
-            // Create a base HTTP response
-            HTTPResponse response = createBaseHTTPResponse(request.getHttpVersion());
             // Process the request
             HTTPRequestMethod method = request.getMethod();
+            
+            RequestHandler handler = null;
             switch (method) {
                 case GET:
-                // Handle GET request
-                response = handleGETRequest(request, response);
+                handler = new GETRequestHandler();
                 break;
 
                 case POST:
-                // Handle POST request
+                handler = new POSTRequestHandler();
                 break;
 
                 case PUT:
@@ -55,25 +61,31 @@ public class ClientThread implements Runnable{
                 // Handle DELETE request
                 break;
                 
-                // Handle other methods
+                // Handle other methods (Not implemented for the moment)
                 case OPTIONS:
                 case TRACE:
                 case CONNECT:
                 case HEAD:
-                
+                    handler = new BaseRequestHandler();
                 break;
-                default:
+
                 // Handle unknown method
+                default:
+                    handler = new BaseRequestHandler();
                 break;
             }
 
+            HTTPResponse response = handler.handle(request, this.pages);
             // Send the response back to the client
             sendHTTPResponse(response, writer);
 
             } catch (HTTPParseException e) {
             //Handle HTTParseException
+                System.err.println("HTTP Parse Exception: " + e.getMessage());
             } catch (IOException e) {
             //Handle IOException
+                System.err.println("IO Exception: " + e.getMessage());
+                e.printStackTrace();
             }
             
 
@@ -84,41 +96,9 @@ public class ClientThread implements Runnable{
 
     }
 
-    private HTTPResponse handleGETRequest(HTTPRequest request, HTTPResponse response) throws IOException {
-        // Check if it is a request for the root resource
-        if (request.getResourceChain() == "/" ) {
-            return this.defaultHTTPResponse(response);
-        }
-
-        return response;
-    }
-
-
     private void sendHTTPResponse(HTTPResponse response, BufferedWriter writer) throws IOException {
         response.print(writer);
         writer.flush();
     }
 
-    private HTTPResponse defaultHTTPResponse(HTTPResponse response) {
-        response.setStatus(HTTPResponseStatus.S200);
-        response.putParameter("Content-Type", "text/html");
-        response.setContent("<html><body><h1>Welcome to the Hybrid Server</h1></body></html>");
-        return response;
-    }
-
-    /**
-     * Creates a base HTTPResponse object with default values.
-     * The response version is set to match the request version, and the status is set to
-     * 200 OK.
-     * @param request The HTTPRequest object to base the response on.
-     * @return The created HTTPResponse object.
-     */
-    private HTTPResponse createBaseHTTPResponse(String requestVersion) {
-        HTTPResponse response = new HTTPResponse();
-        // Set response version to match request version
-        response.setVersion(requestVersion);
-        // Set default status to 200 OK
-        response.setStatus(HTTPResponseStatus.S200);
-        return response;
-    }
 }

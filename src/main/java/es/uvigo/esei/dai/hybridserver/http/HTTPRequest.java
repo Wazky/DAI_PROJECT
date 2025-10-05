@@ -44,12 +44,13 @@ public class HTTPRequest {
     // Wrap it into a bufferedReader
     BufferedReader br = (reader instanceof BufferedReader) ? (BufferedReader) reader : new BufferedReader(reader);
     String line = br.readLine();
-    
+    System.out.println(line);
     // Parse start line
     parseStartLine(line);
     
     // Parse header lines
     while ((line = br.readLine()) != null && !line.isEmpty()) {
+      System.out.println(line);
       parseHeaderLine(line);
     }
     
@@ -143,6 +144,7 @@ public class HTTPRequest {
   private void parseStartLine(String line) throws HTTPParseException{
     boolean CRLF = true;
     // Check if line is null or empty
+    System.out.println("Line content dffd:" + line);
     checkNullOrEmpty(line);
     // Check if line ends with CRLF
     //CRLF = hasCRLFLineEnd(line);  DA ERROR TESTS MIRAR PQ
@@ -194,18 +196,18 @@ public class HTTPRequest {
       throw new HTTPParseException("ERROR: invalid content length found in http request");
     }
 
-
-
     // Check if content type is application/x-www-form-urlencoded
     if (this.headerParameters.containsKey("Content-Type") && this.headerParameters.get("Content-Type").equals("application/x-www-form-urlencoded")) {
       // Decode content
       this.content = URLDecoder.decode(new String(contentChars), StandardCharsets.UTF_8);
-      // Add content parameters to resource parameters map
-      this.resourceParameters = validateResourceParameters(this.content);
 
     } else {
       // Just set content
       this.content = new String(contentChars);
+      
+    }
+    
+    if (this.content.contains("=")) {
       // Add content parameters to resource parameters map
       this.resourceParameters = validateResourceParameters(this.content);
     }
@@ -220,6 +222,7 @@ public class HTTPRequest {
    */
   private void parseMethod(String methodString) throws HTTPParseException{
     try {
+      System.out.println(methodString);
       this.method = HTTPRequestMethod.valueOf(methodString);
 
     } catch (IllegalArgumentException e) {
@@ -280,6 +283,7 @@ public class HTTPRequest {
    */
   private void parseHttpVersion(String versionString, boolean CRLF) throws HTTPParseException {
     // Check if null or empty
+    System.out.println("version: " + versionString);
     checkNullOrEmpty(versionString);
 
     //Validate estructure
@@ -329,6 +333,7 @@ public class HTTPRequest {
    */
   private boolean validateResourceChain(String rcString) throws HTTPParseException{
     // Check if null or empty
+    System.out.println("Resource chain: " + rcString);
     checkNullOrEmpty(rcString);
 
     // Resource chain must start with /
