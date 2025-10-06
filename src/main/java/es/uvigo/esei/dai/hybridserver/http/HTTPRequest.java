@@ -21,6 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URLDecoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.LinkedHashMap;
@@ -197,9 +198,20 @@ public class HTTPRequest {
     }
 
     // Check if content type is application/x-www-form-urlencoded
-    if (this.headerParameters.containsKey("Content-Type") && this.headerParameters.get("Content-Type").equals("application/x-www-form-urlencoded")) {
+    String contentType = this.headerParameters.get("Content-Type");
+    if (contentType != null && contentType.contains("application/x-www-form-urlencoded")) {
+      Charset charset = StandardCharsets.UTF_8;
+      // Check if it includes an especified charset
+      if (contentType.contains("charset=")) {
+        String charsetName = contentType.substring(contentType.indexOf("charset=") + "charset=".length()).trim();
+        try {
+          Charset.forName(charsetName);
+        } catch (Exception ignored) {} // If charset is not valid, use UTF-8 by default
+
+      }
+      
       // Decode content
-      this.content = URLDecoder.decode(new String(contentChars), StandardCharsets.UTF_8);
+      this.content = URLDecoder.decode(new String(contentChars), charset);
 
     } else {
       // Just set content
@@ -212,6 +224,7 @@ public class HTTPRequest {
       this.resourceParameters = validateResourceParameters(this.content);
     }
 
+    System.out.println("Content: " + this.content);
   }
 
   /**

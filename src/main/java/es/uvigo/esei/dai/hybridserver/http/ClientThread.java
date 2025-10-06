@@ -11,11 +11,11 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
 import java.util.Map;
-import es.uvigo.esei.dai.hybridserver.http.HTTPRequestMethod;
 import es.uvigo.esei.dai.hybridserver.handler.RequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.BaseRequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.GETRequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.POSTRequestHandler;
+import es.uvigo.esei.dai.hybridserver.handler.DELETERequestHandler;
 
 public class ClientThread implements Runnable{
 
@@ -58,7 +58,7 @@ public class ClientThread implements Runnable{
                 break;
                 
                 case DELETE:
-                // Handle DELETE request
+                handler = new DELETERequestHandler();
                 break;
                 
                 // Handle other methods (Not implemented for the moment)

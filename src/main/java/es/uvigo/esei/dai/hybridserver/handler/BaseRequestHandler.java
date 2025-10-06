@@ -10,22 +10,15 @@ import es.uvigo.esei.dai.hybridserver.http.HTTPResponseStatus;
 public class BaseRequestHandler implements RequestHandler {
     
     /**
-     * Handles an HTTP request and generates an appropriate HTTP response.
-     * The default implementation of the base handler returns a 501 Not Implemented response.
-     * Subclasses should override this method to provide specific handling for different HTTP methods.
+     * Default handler that returns a 400 Bad Request response.
      * @param request The HTTP request to be handled.
-     * @return The generated HTTP response.
+     * @return The HTTP response generated for the request.
      */
     @Override
     public HTTPResponse handle(HTTPRequest request, Map<String, String> pages) {
         HTTPResponse response = createBaseHTTPResponse(request.getHttpVersion());
 
-        response.setStatus(HTTPResponseStatus.S501);
-        response.putParameter("Allow", "GET, POST, PUT, DELETE");
-        response.putParameter("Content-Type", "text/plain");
-        response.setContent("501 Not Implemented: The requested method is not implemented by the server.");
-
-        return response;
+        return badRequest(response);
 
     }
 
@@ -53,20 +46,33 @@ public class BaseRequestHandler implements RequestHandler {
 
         response.setStatus(HTTPResponseStatus.S400);    
         response.putParameter("Content-Type", "text/plain");
-        response.setContent("400 Bad Request: The server could not understand the request due to invalid syntax.");
+        response.setContent("400 Bad Request: The server could not understand the request.");
+
+        return response;
+    }
+
+        /**
+         * Generates a not found response.
+         * @param response The base HTTP response to be modified.
+         * @return The modified HTTP response.
+         */
+    protected HTTPResponse notFound(HTTPResponse response) {
+        response.setStatus(HTTPResponseStatus.S404);
+        response.putParameter("Content-Type", "text/plain");
+        response.setContent("404 Not Found: The requested resource was not found on the server.");
 
         return response;
     }
 
     /**
-     * Generates a welcome page response.
+     * Generates an internal server error response.
      * @param response The base HTTP response to be modified.
      * @return The modified HTTP response.
      */
-    protected HTTPResponse notFound(HTTPResponse response) {
-        response.setStatus(HTTPResponseStatus.S404);
+    protected HTTPResponse internalServerError(HTTPResponse response) {
+        response.setStatus(HTTPResponseStatus.S500);
         response.putParameter("Content-Type", "text/plain");
-        response.setContent("404 Not Found: The requested resource was not found on the server.");
+        response.setContent("500 Internal Server Error: The server got an unexpected error couldn't fulfill the request.");
 
         return response;
     }

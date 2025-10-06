@@ -67,7 +67,7 @@ public class GETRequestHandler extends BaseRequestHandler {
 
         String content = "<html><body><h1>Available Pages</h1><ul>";
         for (String key : pages.keySet()) {
-            content += "<li><a href='" + pages.get(key) + "'>" + key + "</a></li>";
+            content += "<li><a href='html?uuid=" + key + "'>" + key + "</a></li>";
         }
         content += "</ul></body></html>";
 

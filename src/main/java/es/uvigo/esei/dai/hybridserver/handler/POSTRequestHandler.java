@@ -8,9 +8,10 @@ import es.uvigo.esei.dai.hybridserver.http.HTTPResponseStatus;
 
 public class POSTRequestHandler extends BaseRequestHandler {
     
+    public POSTRequestHandler() {}
+
     @Override
     public HTTPResponse handle(HTTPRequest request, Map<String, String> pages) {
-        HTTPResponse r = null;
         // Check if its a request for a html resource
         if (request.getResourceName().equals("html")) {
 
@@ -30,13 +31,12 @@ public class POSTRequestHandler extends BaseRequestHandler {
                     uuid = UUID.randomUUID().toString();
                 }
                 // Store the new page
-                pages.put(uuid, request.getContent());
+                pages.put(uuid, request.getResourceParameters().get("html"));
 
                 return created(createBaseHTTPResponse(request.getHttpVersion()), uuid);
             }
 
             return badRequest(createBaseHTTPResponse(request.getHttpVersion()));
-
         }
 
         // For other resources (initially only html files are supported)
@@ -48,8 +48,9 @@ public class POSTRequestHandler extends BaseRequestHandler {
 
     private HTTPResponse created(HTTPResponse response, String uuid) {
         response.setStatus(HTTPResponseStatus.S200);
-        response.putParameter("Content-Type", "text/plain");
-        response.setContent("200 OK: (Should be 201 created) The resource has been created with UUID: " + uuid);
+        response.putParameter("Content-Type", "text/html");
+
+        response.setContent(createdPageHTML(uuid));
 
         return response;
     }
@@ -65,14 +66,22 @@ public class POSTRequestHandler extends BaseRequestHandler {
         if (request.getContent() == null || request.getContent().isEmpty()) {            
             return false;
         }
+        
+        // Valid content, send as form parameter (html = <content>)
+        return request.getResourceParameters().get("html") != null;
 
-        // Check if content type is text/html
-        String contentType = request.getHeaderParameters().get("Content-Type");
-        if (contentType == null) {
-            return false;
-        }
+    }
 
-        return true;
+    private String createdPageHTML(String uuid) {
+        return 
+        "<html>" +
+            "<head><title>200 OK</title></head>" +
+            "<body>" +
+                "<h1>Page Created</h1>" +
+                "<h2>The page <a href=\"html?uuid=" + uuid + "\">" + uuid + "</a> has been successfully created.</h2>" +
+            "</body>" +
+        "</html>";
+
     }
 
 }
