@@ -1,21 +1,25 @@
 package es.uvigo.esei.dai.hybridserver.handler;
 
-import java.util.Map;
-
 import es.uvigo.esei.dai.hybridserver.http.HTTPRequest;
 import es.uvigo.esei.dai.hybridserver.http.HTTPResponse;
 import es.uvigo.esei.dai.hybridserver.http.HTTPResponseStatus;
+import es.uvigo.esei.dai.hybridserver.controler.PagesController;
 
-
+/**
+ * Base implementation of the RequestHandler interface.
+ * This class provides default behavior for handling HTTP requests,
+ * returning a 400 Bad Request response for unhandled requests.
+ */
 public class BaseRequestHandler implements RequestHandler {
     
     /**
      * Default handler that returns a 400 Bad Request response.
+     * 
      * @param request The HTTP request to be handled.
      * @return The HTTP response generated for the request.
      */
     @Override
-    public HTTPResponse handle(HTTPRequest request, Map<String, String> pages) {
+    public HTTPResponse handle(HTTPRequest request, PagesController controller) {
         HTTPResponse response = createBaseHTTPResponse(request.getHttpVersion());
 
         return badRequest(response);
@@ -24,8 +28,9 @@ public class BaseRequestHandler implements RequestHandler {
 
     /**
      * Creates a base HTTPResponse object with default values.
-     * The response version is set to match the request version, and the status is set to
-     * 200 OK.
+     * The response version is set to match the request version,
+     * and the status is set to 200 OK.
+     *
      * @param httpVersion The HTTP version from the request.
      * @return The created HTTPResponse object.
      */
@@ -39,6 +44,7 @@ public class BaseRequestHandler implements RequestHandler {
 
     /**
      * Generates a bad request response.
+     * 
      * @param response The base HTTP response to be modified.
      * @return The modified HTTP response.
      */
@@ -51,11 +57,12 @@ public class BaseRequestHandler implements RequestHandler {
         return response;
     }
 
-        /**
-         * Generates a not found response.
-         * @param response The base HTTP response to be modified.
-         * @return The modified HTTP response.
-         */
+    /**
+     * Generates a not found response.
+     * 
+     * @param response The base HTTP response to be modified.
+     * @return The modified HTTP response.
+     */
     protected HTTPResponse notFound(HTTPResponse response) {
         response.setStatus(HTTPResponseStatus.S404);
         response.putParameter("Content-Type", "text/plain");
@@ -66,6 +73,7 @@ public class BaseRequestHandler implements RequestHandler {
 
     /**
      * Generates an internal server error response.
+     * 
      * @param response The base HTTP response to be modified.
      * @return The modified HTTP response.
      */

@@ -24,12 +24,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
 
+/**
+ * Class representing an HTTP response.
+ * This class provides methods to set the status, version, content, and parameters of the response,
+ * as well as to print the response to a Writer.
+ */
 public class HTTPResponse {
 
-  private HTTPResponseStatus status;
-  private String version;
-  private String content;
-  private Map<String, String> parameters = new java.util.HashMap<>();
+  private HTTPResponseStatus status;  // HTTP response status
+  private String version;  // HTTP version
+  private String content; // Content of the response
+  private Map<String, String> parameters = new java.util.HashMap<>(); // Parameters of the response
 
   private String CRLF = "\r\n";
 
@@ -37,23 +42,42 @@ public class HTTPResponse {
     // TODO Completar
   }
 
+  /**
+   * Returns the HTTP response status.
+   * 
+   * @return The HTTP response status.
+   */
   public HTTPResponseStatus getStatus() {
     return this.status;
   }
 
+  /**
+   * Sets the HTTP response status.
+   * 
+   * @param status The HTTP response status to set.
+   * @throws IllegalArgumentException if status is null
+   */
   public void setStatus(HTTPResponseStatus status) {
-    // Check it
     validateHTTPResponseStatus(status);
     this.status = status;
   }
 
+  /**
+   * Returns the HTTP version of the response.
+   * 
+   * @return The HTTP version of the response.
+   */
   public String getVersion() {
-    // Check it
     return this.version;
   }
 
+  /**
+   * Sets the HTTP version of the response.
+   * Only "HTTP/1.1" is supported.
+   * 
+   * @param version The HTTP version to set.
+   */
   public void setVersion(String version) {
-    // Check it
     try {
       this.version = validateHTTPVersion(version);
     } catch (IllegalArgumentException e) {
@@ -62,13 +86,22 @@ public class HTTPResponse {
     }
   }
 
+  /**
+   * Returns the content of the HTTP response.
+   * 
+   * @return The content of the HTTP response.
+   */
   public String getContent() {
-    // Check it
     return this.content;
   }
 
+  /**
+   * Sets the content of the HTTP response.
+   * Also updates the "Content-Length" parameter accordingly.
+   * 
+   * @param content The content to set in the HTTP response.
+   */
   public void setContent(String content) {
-    // Check it
     if (content != null) {
       this.putParameter("Content-Length", String.valueOf(content.length()));
     }
@@ -76,13 +109,23 @@ public class HTTPResponse {
     this.content = content;
   }
 
+  /**
+   * Returns the map of parameters in the HTTP response.
+   * 
+   * @return The map of parameters in the HTTP response.
+   */
   public Map<String, String> getParameters() {
-    // Check it
     return this.parameters;
   }
 
+  /**
+   * Adds or updates a parameter in the HTTP response.
+   * 
+   * @param name The name of the parameter.
+   * @param value The value of the parameter.
+   * @return The added or updated parameter in "name: value" format, or null if the parameter was not added/updated.
+   */
   public String putParameter(String name, String value) {
-    // Check it
     try {
       validateParameter(name, value);      
     } catch (IllegalArgumentException e) {
@@ -95,26 +138,42 @@ public class HTTPResponse {
     return parseParameter(name);
   }
 
+  /**
+   * Checks if a parameter exists in the HTTP response.
+   * 
+   * @param name The name of the parameter to check.
+   * @return true if the parameter exists, false otherwise.
+   */
   public boolean containsParameter(String name) {
-    // Check it
     return this.parameters.containsKey(name);
   }
 
+  /**
+   * Removes a parameter from the HTTP response.
+   * 
+   * @param name The name of the parameter to remove.
+   * @return The removed parameter in "name: value" format, or null if the parameter was not found.
+   */
   public String removeParameter(String name) {
-    // Check it
     if (containsParameter(name)) {
       return new String(name + ": " + this.parameters.remove(name));
     }
     return null;
   }
 
+  /**
+   * Clears all parameters from the HTTP response.
+   */
   public void clearParameters() {
-    // Check it
     this.parameters.clear();
   }
 
+  /**
+   * Lists all parameters in "name: value" format.
+   * 
+   * @return A list of all parameters in "name: value" format.
+   */
   public List<String> listParameters() {
-    // Check it
     if (this.parameters.size() == 0) {
       return new ArrayList<String>();
     }
@@ -125,9 +184,13 @@ public class HTTPResponse {
     return params;
   }
 
+  /**
+   * Prints the HTTP response to the provided Writer.
+   * 
+   * @param writer The Writer to print the HTTP response to.
+   * @throws IOException If an I/O error occurs.
+   */
   public void print(Writer writer) throws IOException {
-    // Check if http response base is valid (status and version)
-
 
     // Print status line
     writer.write(this.version + " " + parseHTTPResponseStatus() + CRLF);
@@ -148,6 +211,11 @@ public class HTTPResponse {
 
   }
 
+  /**
+   * Returns the string representation of the HTTP response.
+   * 
+   * @return The string representation of the HTTP response.
+   */
   @Override
   public String toString() {
     try (final StringWriter writer = new StringWriter()) {
@@ -162,17 +230,19 @@ public class HTTPResponse {
 // ADITIONAL FUNCTIONS
 
   /**
-   * Parse HTTP Response status
-   * @return Parsed HTTP Response status
+   * Parse HTTP response status to "code status" format
+   * 
+   * @return Parsed HTTP response status in "code status" format
    */
   private String parseHTTPResponseStatus() {
     return this.status.getCode() + " " + this.status.getStatus();
   }
 
   /**
-   * Parse HTTP Header parameter
+   * Parse parameter to "name: value" format
+   * 
    * @param name Parameter name
-   * @return Parsed HTTP Header parameter
+   * @return Parsed parameter in "name: value" format
    */
   private String parseParameter(String name) {
     String headerParameter = name + ": " + this.parameters.get(name);
@@ -180,8 +250,10 @@ public class HTTPResponse {
   }
 
   /**
-   * Validate HTTP Response status
-   * @param status
+   * Validate HTTP response status.
+   * 
+   * @param status HTTP response status to validate
+   * @throws IllegalArgumentException if status is null
    */
   private void validateHTTPResponseStatus(HTTPResponseStatus status) {
     // Check status is not null
@@ -191,7 +263,8 @@ public class HTTPResponse {
   }
 
   /**
-   * Validate HTTP version
+   * Validate HTTP version.
+   * 
    * @param version HTTP version to validate
    * @return Validated HTTP version (Only "HTTP/1.1" supported)
    * @throws IllegalArgumentException if version is null or invalid
@@ -212,7 +285,8 @@ public class HTTPResponse {
   }
 
   /**
-   * Validate parameter name and value
+   * Validate parameter name and value.
+   * 
    * @param name Parameter name
    * @param value Parameter value
    * @throws IllegalArgumentException if name or value are null or empty

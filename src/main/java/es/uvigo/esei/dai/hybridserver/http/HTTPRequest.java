@@ -26,32 +26,40 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.LinkedHashMap;
 
-
+/**
+ * Class representing an HTTP request.
+ * This class parses an HTTP request from a Reader and provides access to its components.
+ */
 public class HTTPRequest {
 
-  private HTTPRequestMethod method;
-  private String resourceChain;
-  private String[] resourcePath;
-  private String resourceName;
-  private Map<String, String> resourceParameters = new LinkedHashMap<>();
-  private String httpVersion;
-  private Map<String, String> headerParameters = new LinkedHashMap<>();
-  private int contentLength = 0;
-  private String content;
+  private HTTPRequestMethod method;  // HTTP request method
+  private String resourceChain; // Full resource chain (path + parameters)
+  private String[] resourcePath;  // Resource path as an array of strings
+  private String resourceName;  // Resource name
+  private Map<String, String> resourceParameters = new LinkedHashMap<>(); // Resource parameters
+  private String httpVersion;  // HTTP version
+  private Map<String, String> headerParameters = new LinkedHashMap<>(); // Header parameters
+  private int contentLength = 0;  // Content length
+  private String content;  // Content
 
+  /**
+   * Constructs an HTTPRequest by parsing the provided Reader.
+   * The Reader should contain a valid HTTP request.
+   * 
+   * @param reader the Reader containing the HTTP request
+   * @throws IOException if an I/O error occurs
+   * @throws HTTPParseException if the HTTP request is not valid
+   */
   public HTTPRequest(Reader reader) throws IOException, HTTPParseException {
-    // TODO Completar. Cualquier error en el procesado debe lanzar una HTTPParseException
-    
     // Wrap it into a bufferedReader
     BufferedReader br = (reader instanceof BufferedReader) ? (BufferedReader) reader : new BufferedReader(reader);
     String line = br.readLine();
-    System.out.println(line);
+    
     // Parse start line
     parseStartLine(line);
     
     // Parse header lines
     while ((line = br.readLine()) != null && !line.isEmpty()) {
-      System.out.println(line);
       parseHeaderLine(line);
     }
     
@@ -75,48 +83,86 @@ public class HTTPRequest {
 
   }
 
+  /**
+   * Returns the HTTP method of the request.
+   * 
+   * @return the HTTP method
+   */
   public HTTPRequestMethod getMethod() {
-    // Check it
     return this.method;
   }
 
+  /**
+   * Returns the resource chain of the HTTP request.
+   * The resource chain includes the full path and any parameters.
+   * 
+   * @return the resource chain as a string
+   */
   public String getResourceChain() {
-    // Check it
     return this.resourceChain;
   }
 
+  /**
+   * Returns the resource path of the HTTP request as an array of strings.
+   * Each element in the array represents a part of the resource path.
+   * 
+   * @return an array of strings containing the parts of the resource path
+   */
   public String[] getResourcePath() {
-    // Check it
     return this.resourcePath;
   }
 
+  /**
+   * Returns the resource name of the HTTP request.
+   * 
+   * @return the resource name as a string
+   */
   public String getResourceName() {
-    // Check it
     return this.resourceName;
   }
 
+  /**
+   * Returns the resource parameters of the HTTP request.
+   * 
+   * @return a map containing the resource parameters
+   */
   public Map<String, String> getResourceParameters() {
-    // Check it
     return this.resourceParameters;
   }
 
-  public String getHttpVersion() {
-    // Check it 
+  /**
+   * Returns the HTTP version of the request.
+   * 
+   * @return the HTTP version as a string
+   */
+  public String getHttpVersion() { 
     return this.httpVersion;
   }
 
+  /**
+   * Returns the header parameters of the HTTP request.
+   * 
+   * @return a map containing the header parameters
+   */
   public Map<String, String> getHeaderParameters() {
-    // Check it
     return this.headerParameters;
   }
 
+  /**
+   * Returns the content of the HTTP request.
+   * 
+   * @return the content as a string
+   */
   public String getContent() {
-    // TODO Completar
     return this.content;
   }
 
+  /**
+   * Returns the content length of the HTTP request.
+   * 
+   * @return the content length
+   */
   public int getContentLength() {
-    // Check it
     return this.contentLength;
   }
 
@@ -139,16 +185,15 @@ public class HTTPRequest {
   // Additional functions
 
   /**
+   * Parse the start line from an HTTP request.
    * 
-   * @param line the starting line of an HTTP request
+   * @param line the start line to parse
+   * @throws HTTPParseException if the start line is not valid
    */
   private void parseStartLine(String line) throws HTTPParseException{
     boolean CRLF = true;
     // Check if line is null or empty
-    System.out.println("Line content dffd:" + line);
     checkNullOrEmpty(line);
-    // Check if line ends with CRLF
-    //CRLF = hasCRLFLineEnd(line);  DA ERROR TESTS MIRAR PQ
 
     String[] parts = line.split(" ");
 
@@ -166,6 +211,12 @@ public class HTTPRequest {
 
   }
 
+  /**
+   * Parse a header line from an HTTP request.
+   * 
+   * @param line the header line to parse
+   * @throws HTTPParseException if the header line is not valid
+   */
   private void parseHeaderLine(String line) throws HTTPParseException {
     // Check if line is null or empty
     checkNullOrEmpty(line);
@@ -189,6 +240,13 @@ public class HTTPRequest {
     this.headerParameters.put(key, value);
   }
 
+  /**
+   * Parse the content of the HTTP request.
+   * 
+   * @param br the buffered reader containing the content
+   * @throws IOException if an I/O error occurs
+   * @throws HTTPParseException if the content is not valid
+   */
   private void parseContent(BufferedReader br) throws IOException, HTTPParseException {
     char[] contentChars = new char[this.contentLength];
 
@@ -224,18 +282,17 @@ public class HTTPRequest {
       this.resourceParameters = validateResourceParameters(this.content);
     }
 
-    System.out.println("Content: " + this.content);
   }
 
   /**
-   * Parse the method from a string
-   * Checks if it is a valid HTTP method
+   * Parse the method from a string.
+   * Checks if it is a valid HTTP method.
+   * 
    * @param methodString the string containing the method
    * @throws HTTPParseException if the method is not valid
    */
   private void parseMethod(String methodString) throws HTTPParseException{
     try {
-      System.out.println(methodString);
       this.method = HTTPRequestMethod.valueOf(methodString);
 
     } catch (IllegalArgumentException e) {
@@ -246,7 +303,8 @@ public class HTTPRequest {
 
   /**
    * Parse the resource chain from a string
-   * Validates the resource chain structure and parses it into path, name and parameters
+   * Validates the resource chain structure and parses it into path, name and parameters.
+   * 
    * @param rchainString the string containing the resource chain
    * @throws HTTPParseException if the resource chain is not valid
    */
@@ -289,14 +347,15 @@ public class HTTPRequest {
   }
 
   /**
-   * Parse the HTTP version from a string
+   * Parse the HTTP version from a string.
+   * Validates the version structure and checks if it is supported.
+   * 
    * @param versionString the string containing the HTTP version
-   * @param CRLF true if the line ends with CRLF, false otherwise
-   * @throws HTTPParseException if the version is not valid
+   * @param CRLF boolean indicating if the line ends with CRLF
+   * @throws HTTPParseException if the HTTP version is not valid or not supported
    */
   private void parseHttpVersion(String versionString, boolean CRLF) throws HTTPParseException {
     // Check if null or empty
-    System.out.println("version: " + versionString);
     checkNullOrEmpty(versionString);
 
     //Validate estructure
@@ -305,12 +364,7 @@ public class HTTPRequest {
     }
 
     if (CRLF) {
-      /*
-      // Check if it is not HTTP/1.1
-      if (!versionString.substring(0, versionString.length() - 2).equals("HTTP/1.1")) {
-        throw new HTTPParseException("ERROR: http request has CRLF line ending but http version is not HTTP/1.1");
-      }
-      */
+      // If it has CRLF, version must be HTTP/1.1
       if (!versionString.equals("HTTP/1.1")) {
         throw new HTTPParseException("ERROR: http request has CRLF line ending but http version is not HTTP/1.1");
       }
@@ -338,15 +392,14 @@ public class HTTPRequest {
   }
 
   /**
-   * Validate the resource chain string
-   * checks if it is null or empty and if it starts with /
+   * Validate the resource chain string.
+   * 
    * @param rcString the resource chain string
    * @return true if the resource chain is valid, false otherwise
    * @throws HTTPParseException if the resource chain is null or empty
    */
   private boolean validateResourceChain(String rcString) throws HTTPParseException{
     // Check if null or empty
-    System.out.println("Resource chain: " + rcString);
     checkNullOrEmpty(rcString);
 
     // Resource chain must start with /
@@ -368,7 +421,9 @@ public class HTTPRequest {
   }
 
   /**
-   * Validate the resource path string
+   * Validate the resource path string.
+   * Ensures that the path is not null or empty and does not contain invalid characters.
+   * 
    * @param rpathString the resource path string
    * @return an array of strings containing the parts of the resource path
    * @throws HTTPParseException if the resource path is not valid
@@ -399,7 +454,8 @@ public class HTTPRequest {
   }
 
   /**
-   * Validate the resource parameters string
+   * Validate the resource parameters string.
+   * 
    * @param rparamsString the resource parameters string
    * @return a map containing the resource parameters
    * @throws HTTPParseException if the resource parameters are not valid
@@ -432,8 +488,10 @@ public class HTTPRequest {
     return parameters;
   }
 
+  // This function was intended to handle http requests different from HTTP/1.x (that do not use CRLF line endings)
   /**
    * Validate if a line ends with \r\n (CRLF)
+   * 
    * @param line the line to check
    * @return true if the line ends with CRLF, false otherwise
    */
@@ -442,7 +500,9 @@ public class HTTPRequest {
   }
 
   /**
-   * Check if a string contains invalid characters
+   * Check if a string contains invalid characters.
+   * This includes control characters, whitespace, and certain special characters.
+   * 
    * @param str the string to check
    * @return true if the string contains invalid characters, false otherwise
    */
@@ -459,6 +519,7 @@ public class HTTPRequest {
 
   /**
    * Check if a string is null or empty
+   * 
    * @param str the string to check
    * @throws HTTPParseException if the string is null or empty
    */
