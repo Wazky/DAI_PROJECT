@@ -28,12 +28,15 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 
 import es.uvigo.esei.dai.hybridserver.controler.DefaultPagesController;
+import es.uvigo.esei.dai.hybridserver.model.dao.PageDAO;
 import es.uvigo.esei.dai.hybridserver.model.dao.PageDBDAO;
+import es.uvigo.esei.dai.hybridserver.model.dao.PageMapDAO;
 
 public class HybridServer implements AutoCloseable {
   
   private Thread serverThread;
   private ExecutorService threadPool;
+  private final static int DEFAULT_NUM_CLIENTS = 50;
   private boolean stop;
   
   private int SERVICE_PORT = 8888;
@@ -42,7 +45,9 @@ public class HybridServer implements AutoCloseable {
   private String DB_USERNAME;
   private String DB_PASSWORD;
 
-private Map<String, String> pages;
+  private PageDAO dao;
+  private Map<String, String> pages;
+  private DefaultPagesController controller;
 
   /**
    * Initializes the server with default parameters.
@@ -52,6 +57,12 @@ private Map<String, String> pages;
     defaultInitialization();
     // Initialize default pages
     initDefaultPages();
+
+    // By default, use in memory DAO
+    this.dao = new PageMapDAO(this.pages);
+    this.controller = new DefaultPagesController(dao);
+
+    this.threadPool = Executors.newFixedThreadPool(DEFAULT_NUM_CLIENTS);
 
   }
 
@@ -64,8 +75,17 @@ private Map<String, String> pages;
     // Initialize with default parameters
     defaultInitialization();
     // Initialize pages with the provided map
-    this.pages = pages;
+    initDefaultPages();
     
+    for (String uuid : pages.keySet()) {
+      this.pages.put(uuid, pages.get(uuid));
+    }
+    
+    // Initialize the DAO (Map-based DAO)
+    this.dao = new PageMapDAO(pages);
+    this.controller = new DefaultPagesController(dao);
+
+    this.threadPool = Executors.newFixedThreadPool(DEFAULT_NUM_CLIENTS);
   }
 
   /**
@@ -83,7 +103,13 @@ private Map<String, String> pages;
     this.DB_PASSWORD = properties.getProperty("db.password", "hsdbpass");
 
     // Initialize default pages
-    initDefaultPages();
+    //initDefaultPages();
+
+    // Initialize the DAO (DB-based DAO)
+    this.dao = new PageDBDAO(DB_URL, DB_USERNAME, DB_PASSWORD);
+    this.controller = new DefaultPagesController(dao);
+
+    this.threadPool = Executors.newFixedThreadPool(NUM_CLIENTS);
 
   }
 
@@ -96,10 +122,7 @@ private Map<String, String> pages;
       @Override
       public void run() {
         try (final ServerSocket serverSocket = new ServerSocket(SERVICE_PORT)) {
-          
-          if (threadPool == null) {
-            threadPool = Executors.newFixedThreadPool(NUM_CLIENTS);
-          }
+
           
           while (true) {
             Socket socket = serverSocket.accept();
@@ -107,9 +130,6 @@ private Map<String, String> pages;
                 break;
               
               infoParams();
-              // Create DAO and Controller
-              PageDBDAO dao = new PageDBDAO(DB_URL, DB_USERNAME, DB_PASSWORD);
-              DefaultPagesController controller = new DefaultPagesController(dao);
               
               threadPool.execute(new ClientThread(socket, controller));
 
@@ -148,13 +168,13 @@ private Map<String, String> pages;
     threadPool.shutdownNow();
 
     // Add this give error in the tests
-    /*
+    
     try {
       this.threadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    */
+    
   }
 
   /**

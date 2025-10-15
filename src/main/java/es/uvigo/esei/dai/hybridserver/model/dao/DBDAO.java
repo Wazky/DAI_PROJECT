@@ -34,7 +34,7 @@ public class DBDAO {
      * @return A new Connection object to the database.
      * @throws SQLException If a database access error occurs.
      */
-    protected Connection getConnection() throws SQLException {
+    protected Connection openConnection() throws SQLException {
         return DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
     }
 

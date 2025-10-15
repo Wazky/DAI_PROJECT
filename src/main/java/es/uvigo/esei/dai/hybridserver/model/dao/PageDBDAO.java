@@ -42,7 +42,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         }
 
         // Open connection with DB
-        try (Connection conn = this.getConnection()) {
+        try (Connection conn = this.openConnection()) {
 
             // create query
             final String query = "SELECT uuid, content FROM HTML WHERE uuid = ?";
@@ -76,7 +76,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
     @Override
     public List<Page> list() throws DAOException {
         // Open connection with DB
-        try (Connection conn = this.getConnection()) {
+        try (Connection conn = this.openConnection()) {
 
             // Create query
             final String query = "SELECT uuid, content FROM HTML";
@@ -121,7 +121,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         }
 
         // Open connection with DB
-        try (Connection conn = this.getConnection()) {
+        try (Connection conn = this.openConnection()) {
             
             // Create query
             final String query = "INSERT INTO HTML (uuid, content) VALUES (?, ?)";
@@ -163,7 +163,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         }
 
         // Open connection with DB
-        try (Connection conn = this.getConnection()) {
+        try (Connection conn = this.openConnection()) {
 
             // Create query
             final String query = "UPDATE HTML SET content = ? WHERE uuid = ?";            
@@ -203,7 +203,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         }
 
         // Open connection with DB
-        try (Connection conn = this.getConnection()) {
+        try (Connection conn = this.openConnection()) {
 
             // Create query
             final String query = "DELETE FROM HTML WHERE uuid = ?";
@@ -240,7 +240,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         }
 
         // Open connection with DB
-        try (Connection conn = this.getConnection()) {
+        try (Connection conn = this.openConnection()) {
 
             // Create query
             final String query = "SELECT 1 FROM HTML WHERE uuid = ?";
