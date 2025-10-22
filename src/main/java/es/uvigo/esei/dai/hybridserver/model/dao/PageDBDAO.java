@@ -45,7 +45,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         try (Connection conn = this.openConnection()) {
 
             // create query
-            final String query = "SELECT uuid, content FROM HTML WHERE uuid = ?";
+            final String query = "SELECT uuid, content, version FROM HTML WHERE uuid = ?";
 
             // Prepare statement
             try (PreparedStatement statement = conn.prepareStatement(query)) {
@@ -79,7 +79,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         try (Connection conn = this.openConnection()) {
 
             // Create query
-            final String query = "SELECT uuid, content FROM HTML";
+            final String query = "SELECT uuid, content, version FROM HTML";
 
             // Prepare statement
             try (PreparedStatement statement = conn.prepareStatement(query)) {
@@ -124,13 +124,14 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         try (Connection conn = this.openConnection()) {
             
             // Create query
-            final String query = "INSERT INTO HTML (uuid, content) VALUES (?, ?)";
+            final String query = "INSERT INTO HTML (uuid, content, version) VALUES (?, ?, 1)"; // On creation version value would be 1
             
             // Prepare statement
             try (PreparedStatement statement = conn.prepareStatement(query)) {
             
                 statement.setString(1, page.getUuid());
                 statement.setString(2, page.getContent());
+                
             
                 // Execute query
                 int rowsAffected = statement.executeUpdate();
@@ -166,7 +167,7 @@ public class PageDBDAO extends DBDAO implements PageDAO {
         try (Connection conn = this.openConnection()) {
 
             // Create query
-            final String query = "UPDATE HTML SET content = ? WHERE uuid = ?";            
+            final String query = "UPDATE HTML SET content = ?, version = version + 1 WHERE uuid = ?";    // Increment the version value in 1        
             // Prepare statement
             try (PreparedStatement statement = conn.prepareStatement(query)) {
             
@@ -270,7 +271,8 @@ public class PageDBDAO extends DBDAO implements PageDAO {
     private Page rowToEntity(final ResultSet row) throws SQLException {
         return new Page(
             row.getString("uuid"),
-            row.getString("content")
+            row.getString("content"),
+            row.getInt("version")
         );
     }
 

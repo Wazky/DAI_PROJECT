@@ -12,6 +12,7 @@ public class Page implements Serializable {
 
     private String uuid;    // Unique identifier for the page
     private String content; // Content of the page
+    private int version;    // Version of the page
 
     /**
      * Default constructor for Page.
@@ -26,6 +27,13 @@ public class Page implements Serializable {
     public Page(String uuid, String content) {
         this.uuid = uuid;
         this.content = content;
+        this.version = 1;
+    }
+
+    public Page(String uuid, String content, int version) {
+        this.uuid = uuid;
+        this.content = content;
+        this.version = version;
     }
 
     /**
@@ -61,6 +69,22 @@ public class Page implements Serializable {
     }
 
     /**
+     * Returns the version of the page
+     * @return the version of the page
+     */
+    public int getVersion() {
+        return this.version;
+    }
+
+    /**
+     * Sets the versio of the page
+     * @param version the new version of the page
+     */
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    /**
      * Returns a hash code value for the object.
      * @return a hash code value for this object
      */
@@ -85,7 +109,7 @@ public class Page implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         Page other = (Page) obj;
-        return Objects.equals(uuid, other.uuid) && Objects.equals(content, other.content);
+        return Objects.equals(uuid, other.uuid) && Objects.equals(content, other.content) && Objects.equals(version, other.version);
     }
 
     /**
@@ -94,6 +118,6 @@ public class Page implements Serializable {
      */
     @Override
     public String toString() {
-        return "Pages [uuid=" + uuid + ", content=" + content + "]";
+        return "Pages [uuid=" + uuid + ", version= " + version + ", content=" + content + "]";
     }
 }

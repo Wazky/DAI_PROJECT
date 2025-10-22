@@ -53,7 +53,7 @@ public class GETRequestHandler extends BaseRequestHandler {
                     // Check if the requested page exists
                     if (controller.exists(uuid)) {                        
                         
-                        return requestedPage(createBaseHTTPResponse(request.getHttpVersion()), controller.get(uuid).getContent());
+                        return requestedPage(createBaseHTTPResponse(request.getHttpVersion()), controller.get(uuid));
 
                     } else {
                         // Return not found response
@@ -88,9 +88,11 @@ public class GETRequestHandler extends BaseRequestHandler {
      * @param pageContent The content of the requested page.
      * @return The modified HTTP response.
      */
-    private HTTPResponse requestedPage(HTTPResponse response, String pageContent) {
+    private HTTPResponse requestedPage(HTTPResponse response, Page page) {
         response.putParameter("Content-Type", "text/html");
-        response.setContent(pageContent);
+        response.putParameter("X-Version", Integer.toString(page.getVersion()));    // Add a parameter with indicating the page version
+
+        response.setContent(page.getContent());
 
         return response;
     }
@@ -110,7 +112,7 @@ public class GETRequestHandler extends BaseRequestHandler {
 
         try {
             for (Page page : controller.list()) {
-                content += "<li><a href='html?uuid=" + page.getUuid() + "'>" + page.getUuid() + "</a></li>";
+                content += "<li><a href='html?uuid=" + page.getUuid() + "'>" + page.getUuid() + " (Version:" + page.getVersion() + ")</a></li>";
             }
         } catch (DAOException e) {
             // Return internal server error response
