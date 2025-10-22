@@ -60,6 +60,7 @@ public class POSTRequestHandler extends BaseRequestHandler {
                     return internalServerError(createBaseHTTPResponse(request.getHttpVersion()));
                 } 
                 
+                // Return OK response with the created page link
                 return created(createBaseHTTPResponse(request.getHttpVersion()), uuid);
             }
 

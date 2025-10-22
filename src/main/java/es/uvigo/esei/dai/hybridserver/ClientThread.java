@@ -21,6 +21,7 @@ import es.uvigo.esei.dai.hybridserver.handler.RequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.BaseRequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.GETRequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.POSTRequestHandler;
+import es.uvigo.esei.dai.hybridserver.handler.PUTRequestHandler;
 import es.uvigo.esei.dai.hybridserver.handler.DELETERequestHandler;
 
 /**
@@ -79,8 +80,11 @@ public class ClientThread implements Runnable{
                 handler = new DELETERequestHandler();
                 break;
                 
-                // Handle other methods (Not implemented for the moment)
                 case PUT:
+                handler = new PUTRequestHandler();
+                break;
+                
+                // Handle other methods (Not implemented for the moment)
                 case OPTIONS:
                 case TRACE:
                 case CONNECT:
